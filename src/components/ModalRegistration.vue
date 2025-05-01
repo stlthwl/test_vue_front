@@ -1,10 +1,10 @@
 <template>
   <div class="modal fade" id="modalRegistration" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="staticBackdropLabel">Login</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Регистрация</h1>
+          <button type="button" id="close-modal-registration" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <form @submit.prevent="registration">
           <div class="modal-body">
@@ -28,30 +28,26 @@
                   required
               >
             </div>
-            <div class="mb-3">
-              <label for="name" class="form-label">Имя</label>
-              <input
-                  type="text"
-                  class="form-control"
-                  id="name"
-                  v-model="name"
-                  required
-              >
+            <div v-if="message"
+                 :class="{
+                  'alert': true,
+                  'alert-success': confirmed,
+                  'alert-danger': !confirmed
+                 }"
+                 role="alert"
+            >
+              {{message}}
             </div>
-            <div class="mb-3">
-              <label for="surname" class="form-label">Фамилия</label>
-              <input
-                  type="text"
-                  class="form-control"
-                  id="surname"
-                  v-model="surname"
-                  required
-              >
-            </div>
-            <p v-if="message">{{message}}</p>
+            <p>
+              <a href="#" class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                 @click="openLoginModal">
+                Уже есть учетная запись?
+              </a>
+            </p>
           </div>
           <div class="modal-footer">
-            <button v-if="!confirmed" type="submit" class="btn btn-primary">Регистрация</button>
+<!--            <button type="button" class="btn btn-outline-secondary" @click="openLoginModal">Вход</button>-->
+            <button :disabled="confirmed" id="registration-btn" type="submit" class="btn btn-success">Зарегистрироваться</button>
           </div>
         </form>
       </div>
@@ -60,41 +56,47 @@
 </template>
 
 <script>
-import axios from 'axios';
-import { ref } from 'vue';
-// import router from "@/router";
+import axios from 'axios'
+import { ref } from 'vue'
+import { Modal } from 'bootstrap'
+// import router from "@/router"
 
 export default {
   name: "ModalRegistration",
   setup() {
-    const email = ref('');
-    const password = ref('');
-    const name = ref('');
-    const surname = ref('');
-    const message = ref('');
-    const confirmed = ref(false);
+    const email = ref('')
+    const password = ref('')
+    const message = ref('')
+    const confirmed = ref(false)
 
     const registration = async () => {
       try {
-        console.log(confirmed.value)
         const response = await axios.post(`${process.env.VUE_APP_BASE_URL}/register`, {
           email: email.value,
-          name: name.value,
-          surname: surname.value,
           password: password.value,
         });
-        localStorage.setItem('token', response.data.access_token);
-        message.value = 'Регистрация успешно выполнена!'
-        confirmed.value = true
-        // router.push('HomePage')
-        // window.location.reload(); // Перезагрузить страницу для обновления состояния
-      } catch (error) {
-        console.error(error)
-        message.value = 'Ошибка регистрации';
-      }
-    };
 
-    return { email, password, name, surname, registration, message, confirmed };
+        localStorage.setItem('token', response.data.access_token)
+        message.value = 'Регистрация успешно выполнена'
+        confirmed.value = true
+      } catch (error) {
+        message.value = error.response ? error.response.data.detail : error.message
+      }
+    }
+
+    const openLoginModal = () => {
+      const loginModalEl = document.getElementById('modalLogin')
+      if (loginModalEl) {
+        const closeBtn = document.getElementById('close-modal-registration')
+        closeBtn?.click()
+        setTimeout(() => {
+          const modal = new Modal(loginModalEl)
+          modal.show()
+        }, 100)
+      }
+    }
+
+    return { email, password, registration, message, confirmed, openLoginModal }
   },
 }
 </script>

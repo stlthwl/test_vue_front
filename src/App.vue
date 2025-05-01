@@ -7,8 +7,8 @@
 </template>
 
 <script>
-import ModalLogin from './components/ModalLogin.vue';
-import ModalRegistration from "./components/ModalRegistration";
+import ModalLogin from './components/ModalLogin.vue'
+import ModalRegistration from "./components/ModalRegistration"
 
 export default {
   name: 'App',

@@ -1,38 +1,43 @@
 <template>
   <div class="modal fade" id="modalLogin" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="staticBackdropLabel">Login</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Вход</h1>
+          <button type="button" id="close-modal-login" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <form @submit.prevent="login">
           <div class="modal-body">
             <div class="mb-3">
-              <label for="email" class="form-label">Адрес электронной почты</label>
+              <label for="login-email" class="form-label">Адрес электронной почты</label>
               <input
                   type="email"
                   class="form-control"
-                  id="email"
+                  id="login-email"
                   v-model="email"
                   required
               >
             </div>
             <div class="mb-3">
-              <label for="password" class="form-label">Пароль</label>
+              <label for="login-password" class="form-label">Пароль</label>
               <input
                   type="password"
                   class="form-control"
-                  id="password"
+                  id="login-password"
                   v-model="password"
                   required
               >
             </div>
-            <p v-if="errorMessage">{{ errorMessage }}</p>
+            <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+            <p>
+              <a href="#" class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                 @click="openRegisterModal">
+                Регистрация
+              </a>
+            </p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-            <button type="submit" class="btn btn-primary">Войти</button>
+            <button type="submit" class="btn btn-success">Войти</button>
           </div>
         </form>
       </div>
@@ -41,16 +46,17 @@
 </template>
 
 <script>
-import axios from 'axios';
-import { ref } from 'vue';
-import router from "@/router";
+import axios from 'axios'
+import router from "@/router"
+import { ref } from 'vue'
+import { Modal } from 'bootstrap'
 
 export default {
   name: "ModalLogin",
   setup() {
-    const email = ref('');
-    const password = ref('');
-    const errorMessage = ref('');
+    const email = ref('')
+    const password = ref('')
+    const errorMessage = ref('')
 
     const login = async () => {
       try {
@@ -58,23 +64,31 @@ export default {
           email: email.value,
           password: password.value,
         });
-        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('token', response.data.access_token)
         router.push('home')
 
-        const modalElement = document.getElementById('modalLogin');
-        if (modalElement) {
-          const event = new KeyboardEvent('keydown', { key: 'Escape' });
-          modalElement.dispatchEvent(event);
-        }
-
-        // window.location.reload(); // Перезагрузить страницу для обновления состояния
+        const closeBtn = document.getElementById('close-modal-login')
+        closeBtn?.click()
       } catch (error) {
-        errorMessage.value = 'Неверные учетные данные';
+        console.error(error)
+        errorMessage.value = error.response ? error.response.data.detail : error.message
       }
-    };
+    }
 
-    return { email, password, login, errorMessage };
-  },
+    const openRegisterModal = () => {
+      const registrationModalEl = document.getElementById('modalRegistration')
+      if (registrationModalEl) {
+        const closeBtn = document.getElementById('close-modal-login')
+        closeBtn?.click()
+        setTimeout(() => {
+          const registrationModal = new Modal(registrationModalEl)
+          registrationModal.show()
+        }, 100)
+      }
+    }
+
+    return { email, password, login, errorMessage, openRegisterModal };
+  }
 }
 </script>
 
